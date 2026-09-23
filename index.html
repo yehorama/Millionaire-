@@ -27,18 +27,18 @@ button{cursor:pointer}
 .leaders h2{margin:0 0 10px;color:#ffd34e}
 .leader{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.12)}
 .leader:last-child{border:0}
-.game{display:grid;grid-template-columns:1fr 260px;gap:16px;align-items:start}
+.game{display:block;max-width:900px;margin:auto}
 .main{padding:18px}
-.sidebar{padding:12px}
-.header{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sidebar{display:none}
+.header{display:flex;justify-content:center;margin-bottom:12px}.header .badge:not(#currentPrize){display:none}
 .badge{padding:8px 12px;border:1px solid #138fff;border-radius:999px;background:#061941;color:#8fdcff}
 .stage{font-weight:900}
 .timerWrap{position:relative;height:18px;background:#06132e;border:1px solid #157bc4;border-radius:999px;overflow:hidden;margin:10px 0 16px}
 .timerBar{height:100%;width:100%;background:linear-gradient(90deg,#19e85a,#b8ff45);transition:width .1s linear,background .3s}
 .timerBar.orange{background:linear-gradient(90deg,#ffca34,#ff8d13)}
 .timerBar.red{background:linear-gradient(90deg,#ff5a4d,#ff142d);box-shadow:0 0 14px rgba(255,30,50,.65)}
-.timerNum{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-weight:900;text-shadow:0 1px 4px #000}
-.question{font-size:clamp(21px,3vw,34px);line-height:1.35;text-align:center;padding:20px 18px;border:1px solid #0b9df3;border-radius:20px;background:linear-gradient(145deg,#0a285f,#061330);box-shadow:inset 0 0 25px rgba(0,110,220,.14);min-height:105px;display:flex;align-items:center;justify-content:center}
+.timerNum{display:none}
+.questionTop{text-align:center;margin:4px 0 10px}.prizeOnly{display:inline-block;padding:9px 30px;border:2px solid #ffe36b;border-radius:999px;background:linear-gradient(#ffe46a,#ffae0b);color:#241000;font-size:26px;font-weight:900;box-shadow:0 0 22px rgba(255,200,40,.35)}.question{font-size:clamp(21px,3vw,34px);line-height:1.35;text-align:center;padding:20px 18px;border:1px solid #0b9df3;border-radius:20px;background:linear-gradient(145deg,#0a285f,#061330);box-shadow:inset 0 0 25px rgba(0,110,220,.14);min-height:105px;display:flex;align-items:center;justify-content:center}
 .answers{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
 .answer{border:2px solid #079cf0;background:linear-gradient(180deg,#0b326f,#071735);color:#fff;border-radius:18px;padding:14px 18px;text-align:right;min-height:70px;transition:.18s;box-shadow:inset 0 0 18px rgba(0,80,190,.12)}
 .answer:hover{background:linear-gradient(180deg,#10448e,#09224d)}
@@ -59,7 +59,7 @@ button{cursor:pointer}
 .transitionBox,.resultBox{max-width:650px;padding:40px;border-radius:30px;border:2px solid #00b8ff;background:linear-gradient(145deg,#071c4d,#10032f);box-shadow:0 0 60px rgba(0,180,255,.25);animation:pop .45s ease}
 .transitionBox h1,.resultBox h1{color:#ffd34e;font-size:clamp(38px,8vw,72px);margin:0 0 10px}
 .transitionBox p,.resultBox p{font-size:22px}
-.hiddenUI{display:none!important}
+.hiddenUI{display:none!important}.pyramidOverlay{position:fixed;inset:0;background:radial-gradient(circle,#260070 0,#08001f 82%);display:flex;align-items:center;justify-content:center;z-index:40;text-align:center;padding:14px}.pyramidBox{width:min(560px,96vw);padding:20px 16px 24px;border:2px solid #00b8ff;border-radius:28px;background:linear-gradient(145deg,#071c4d,#10032f);box-shadow:0 0 60px rgba(0,180,255,.28)}.pyramidBox h1{margin:0 0 12px;color:#ffd34e;font-size:clamp(30px,7vw,52px)}.pyramid{display:flex;flex-direction:column;gap:5px}.pRow{height:31px;border:1px solid #2877bb;border-radius:15px;background:linear-gradient(180deg,#153c77,#091b43);display:flex;align-items:center;justify-content:center;font-weight:800;opacity:.18;transform:scale(.92);transition:opacity .35s,transform .35s,background .35s,box-shadow .35s}.pRow.show{opacity:1;transform:scale(1)}.pRow.active{background:linear-gradient(180deg,#ffd84f,#e69b12);color:#1a0d00;border-color:#fff1a3;box-shadow:0 0 20px rgba(255,205,50,.55)}.pyramidHint{margin:12px 0 0;color:#b9d9ff;font-size:15px}.lifepulse{animation:lifePulse .45s ease-in-out 3}@keyframes lifePulse{50%{transform:scale(1.12);box-shadow:0 0 28px rgba(0,190,255,.8)}}.answerReveal{animation:reveal .55s ease}@keyframes reveal{0%{filter:brightness(2)}100%{filter:brightness(1)}}.nextPrize{font-size:36px;color:#ffd34e;font-weight:900;margin:12px 0}
 .fire{font-size:60px;animation:pulse .8s infinite alternate}
 @keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes pulse{to{transform:scale(1.12)}}
@@ -139,7 +139,7 @@ const QUESTIONS = [{"q":"מהי בירת ישראל?","a":["ירושלים","ת�
 
 let game = {
  name:"", index:0, current:null, used:{fifty:false,audience:false,swap:false},
- timer:null, startedAt:0, locked:false, questionPool:[],
+ timer:null, tickTimer:null, startedAt:0, locked:false, questionPool:[],
 };
 let audioCtx = null;
 
@@ -232,7 +232,8 @@ function prepareQuestion(){
  startTimer();
 }
 function startTimer(){
- clearInterval(game.timer); game.startedAt=Date.now(); updateTimer();
+ clearInterval(game.timer); clearInterval(game.tickTimer); game.startedAt=Date.now(); updateTimer();
+ game.tickTimer=setInterval(()=>{ beep(760,.045,"square",.018); },1000);
  game.timer=setInterval(updateTimer,100);
 }
 function updateTimer(){
@@ -241,76 +242,92 @@ function updateTimer(){
  const bar=$("timerBar"); bar.style.width=(left/30*100)+"%";
  bar.classList.toggle("orange",left<=15 && left>7); bar.classList.toggle("red",left<=7);
  if(left<=7 && left>6.8) tension();
- if(left<=0){clearInterval(game.timer); finish(false,"נגמר הזמן!");}
+ if(left<=0){clearInterval(game.timer);clearInterval(game.tickTimer);finish(false,"נגמר הזמן!");}
 }
+function stopTimers(){clearInterval(game.timer);clearInterval(game.tickTimer);}
+
 function answer(i){
  if(game.locked)return;
- game.locked=true; clearInterval(game.timer);
+ game.locked=true; stopTimers();
  const btns=[...document.querySelectorAll(".answer")];
- const chosen=game.current.opts[i];
- btns[i].classList.add("selected");
+ const chosen=game.current.opts[i]; btns[i].classList.add("selected");
  setTimeout(()=>{
   const correctIndex=game.current.opts.findIndex(o=>o.correct);
-  btns[correctIndex].classList.add("correct");
+  btns[correctIndex].classList.add("correct","answerReveal");
   if(!chosen.correct) btns[i].classList.add("wrong");
   chosen.correct ? beep(700,.2,"sine",.05) : beep(120,.3,"sawtooth",.05);
-  setTimeout(()=>chosen.correct ? nextQuestion() : finish(false,"התשובה אינה נכונה"),900);
- },450);
+  setTimeout(()=>chosen.correct ? nextQuestion() : finish(false,"התשובה אינה נכונה"),1700);
+ },1200);
 }
 function nextQuestion(){
  game.index++;
  if(game.index===5){showStage(2,"שלב 1 הושלם!","עוברים לשלב הבינוני");return;}
  if(game.index===10){showStage(2,"שלב 2 הושלם!","עכשיו מגיע השלב הקשה");return;}
  if(game.index>=15){win();return;}
- prepareQuestion();
+ showNextPrize();
+}
+function showNextPrize(){
+ $("overlayBox").innerHTML=`<div class="nextPrize">${money(PRIZES[game.index])}</div><p>עולים לשאלה הבאה...</p>`;
+ $("overlay").classList.remove("hiddenUI");
+ setTimeout(()=>{$("overlay").classList.add("hiddenUI");prepareQuestion()},1500);
 }
 function showStage(ms,title,text){
  $("overlayBox").innerHTML=`<div class="fire">${ms===2?"✨":"🔥"}</div><h1>${title}</h1><p>${text}</p>`;
  $("overlay").classList.remove("hiddenUI"); beep(660,.16); setTimeout(()=>beep(880,.18),180);
- setTimeout(()=>{$("overlay").classList.add("hiddenUI");prepareQuestion()},2200);
+ setTimeout(()=>{$("overlay").classList.add("hiddenUI");prepareQuestion()},3200);
 }
 function finish(winFlag,reason){
- clearInterval(game.timer); game.locked=true;
+ stopTimers(); game.locked=true;
  $("overlayBox").innerHTML=`<h1>${winFlag?"🎉 מיליון!":"❌ המשחק הסתיים"}</h1><p>${winFlag?"כל הכבוד! הגעת ל־₪1,000,000":escapeHtml(reason)}</p><p>${winFlag?"השם שלך נכנס לטבלת אלופי המיליונר.":"הגעת עד " + money(game.index?PRIZES[Math.max(0,game.index-1)]:0)}</p><button class="goldBtn" id="backHome">חזרה למסך הראשי</button>`;
  $("overlay").classList.remove("hiddenUI");
  $("backHome").onclick=()=>{ $("overlay").classList.add("hiddenUI"); show("startScreen"); renderLeaders(); };
 }
 async function win(){
- clearInterval(game.timer); game.locked=true; beep(523,.18);setTimeout(()=>beep(659,.18),180);setTimeout(()=>beep(784,.35),360);
+ stopTimers(); game.locked=true; beep(523,.18);setTimeout(()=>beep(659,.18),180);setTimeout(()=>beep(784,.35),360);
  await recordWin(game.name);
  $("overlayBox").innerHTML=`<div class="fire">🏆</div><h1>מזל טוב!</h1><p>הגעת למיליון!</p><p style="color:#ffd34e;font-size:32px;font-weight:900">₪1,000,000</p><button class="goldBtn" id="backHome">חזרה למסך הראשי</button>`;
  $("overlay").classList.remove("hiddenUI");
  $("backHome").onclick=()=>{ $("overlay").classList.add("hiddenUI"); show("startScreen"); renderLeaders(); };
 }
 
+function pulseLife(id){$(id).classList.add("lifepulse");setTimeout(()=>$(id).classList.remove("lifepulse"),1400);}
 function useFifty(){
- if(game.used.fifty||game.locked)return;game.used.fifty=true;$("fifty").classList.add("used");
+ if(game.used.fifty||game.locked)return; game.used.fifty=true; $("fifty").classList.add("used"); game.locked=true; stopTimers(); pulseLife("fifty");
  const wrong=[...document.querySelectorAll(".answer")].filter((b,i)=>!game.current.opts[i].correct);
- shuffle(wrong).slice(0,2).forEach(b=>b.classList.add("hidden")); beep(520,.12);
+ setTimeout(()=>{shuffle(wrong).slice(0,2).forEach((b,n)=>setTimeout(()=>b.classList.add("hidden"),n*500)); beep(520,.12);},600);
+ setTimeout(()=>{game.locked=false;startTimer()},1800);
 }
 function useAudience(){
- if(game.used.audience||game.locked)return;game.used.audience=true;$("audience").classList.add("used");
- const correct=game.current.opts.findIndex(o=>o.correct), vals=[0,0,0,0];
- const stage=stageFor(game.index);
- const correctBase=stage===0?72:stage===1?61:stage===2?46:61;
- let remaining=100-correctBase;
- for(let i=0;i<4;i++) if(i!==correct){const share=Math.random(); vals[i]=share;remaining-=0}
- let weights=vals.map(()=>Math.random()); const sum=weights.reduce((a,b)=>a+b,0);
+ if(game.used.audience||game.locked)return; game.used.audience=true; $("audience").classList.add("used"); game.locked=true; stopTimers(); pulseLife("audience");
+ const correct=game.current.opts.findIndex(o=>o.correct), vals=[0,0,0,0]; const stage=stageFor(game.index);
+ const correctBase=stage===0?72:stage===1?61:46; let remaining=100-correctBase;
+ let weights=vals.map(()=>Math.random()), sum=weights.reduce((a,b)=>a+b,0);
  for(let i=0;i<4;i++) if(i!==correct) vals[i]=Math.floor(remaining*weights[i]/sum);
  vals[correct]=100-vals.filter((_,i)=>i!==correct).reduce((a,b)=>a+b,0);
- // Hard questions occasionally fool the audience.
- if(stage===2 && Math.random()<.18){
-  const wrong=(correct+1+Math.floor(Math.random()*3))%4; const shift=Math.min(vals[correct]-8,10);
-  if(shift>0){vals[correct]-=shift;vals[wrong]+=shift;}
- }
- $("audienceBars").innerHTML=vals.map((v,i)=>`<div class="barCol"><div class="pct">${v}%</div><div class="bar ${i===correct?"best":""}" style="height:${Math.max(8,v*1.7)}px"></div><div class="barLabel">${["א","ב","ג","ד"][i]}</div></div>`).join("");
- const max=Math.max(...vals), lead=vals[correct]===max?"רוב הקהל בחר בתשובה הנכונה.":"הקהל חלוק — אין תשובה עם רוב ברור.";
- $("audienceText").textContent=lead;
- $("audienceOverlay").classList.remove("hiddenUI");beep(520,.12);
+ if(stage===2 && Math.random()<.18){const wrong=(correct+1+Math.floor(Math.random()*3))%4;const shift=Math.min(Math.max(vals[correct]-8,0),10);if(shift>0){vals[correct]-=shift;vals[wrong]+=shift;}}
+ $("audienceBars").innerHTML=vals.map((v,i)=>`<div class="barCol"><div class="pct">0%</div><div class="bar ${i===correct?"best":""}" style="height:8px"></div><div class="barLabel">${["א","ב","ג","ד"][i]}</div></div>`).join("");
+ const cols=[...$("audienceBars").querySelectorAll(".barCol")]; vals.forEach((v,i)=>{setTimeout(()=>{cols[i].querySelector(".pct").textContent=v+"%";cols[i].querySelector(".bar").style.height=Math.max(8,v*1.7)+"px"},i*450)});
+ const max=Math.max(...vals),lead=vals[correct]===max?"רוב הקהל בחר בתשובה הנכונה.":"הקהל חלוק — אין תשובה עם רוב ברור."; $("audienceText").textContent=lead;
+ setTimeout(()=>{$("audienceOverlay").classList.remove("hiddenUI");beep(520,.12)},900);
 }
 function useSwap(){
- if(game.used.swap||game.locked)return;game.used.swap=true;$("swap").classList.add("used");clearInterval(game.timer);beep(430,.12);
- prepareQuestion();
+ if(game.used.swap||game.locked)return; game.used.swap=true; $("swap").classList.add("used"); game.locked=true; stopTimers(); pulseLife("swap");
+ $("overlayBox").innerHTML=`<div class="nextPrize">🔄</div><p>מחליפים שאלה...</p>`; $("overlay").classList.remove("hiddenUI");
+ setTimeout(()=>{$("overlay").classList.add("hiddenUI");game.locked=false;prepareQuestion()},2200);
+}
+function startMelody(){
+ try{audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();}
+ catch(e){}
+ [523,659,784,1047,784,659,880].forEach((f,i)=>setTimeout(()=>beep(f,.22,"sine",.045),i*150));
+}
+function buildPyramid(){
+ $("pyramid").innerHTML=PRIZES.map((p,i)=>`<div class="pRow" data-i="${i}">${money(p)}</div>`).reverse().join("");
+}
+function showPyramidThenStart(){
+ const rows=[...$("pyramid").querySelectorAll(".pRow")].reverse(); $("pyramidOverlay").classList.remove("hiddenUI");
+ rows.forEach((row,i)=>setTimeout(()=>{row.classList.add("show");beep(420+i*22,.08,"sine",.025)},i*260));
+ setTimeout(()=>{rows[0].classList.add("active");$("pyramidHint").textContent="מתחילים מ־₪500"},rows.length*260+350);
+ setTimeout(()=>{$("pyramidOverlay").classList.add("hiddenUI");prepareQuestion()},rows.length*260+1600);
 }
 
 $("startBtn").onclick=()=>{show("nameScreen");setTimeout(()=>$("nameInput").focus(),100)};
@@ -318,12 +335,12 @@ $("nameBtn").onclick=()=>{
  const n=$("nameInput").value.trim();
  if(n.length<2){toast("נא להכניס שם");return}
  game={name:n,index:0,current:null,used:{fifty:false,audience:false,swap:false},timer:null,startedAt:0,locked:false,questionPool:[],usedIds:new Set()};
- buildPool(); show("gameScreen"); prepareQuestion();
+ buildPool(); show("gameScreen"); startMelody(); showPyramidThenStart();
 };
 $("nameInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("nameBtn").click()});
 $("fifty").onclick=useFifty;$("audience").onclick=useAudience;$("swap").onclick=useSwap;
-$("closeAudience").onclick=()=>{$("audienceOverlay").classList.add("hiddenUI")};
-renderLeaders();
+$("closeAudience").onclick=()=>{$("audienceOverlay").classList.add("hiddenUI");game.locked=false;startTimer()};
+renderLeaders(); buildPyramid();
 </script>
 </body>
 </html>
