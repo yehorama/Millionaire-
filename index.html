@@ -68,9 +68,8 @@ button{cursor:pointer}
 .pRow{position:relative;height:31px;transition:opacity .35s,transform .35s,background .35s,box-shadow .35s}
 .pRow::before{content:"";position:absolute;right:10px;top:50%;width:7px;height:7px;border-radius:50%;background:#5bbfff;transform:translateY(-50%);opacity:.75}
 .pRow.active::before{background:#fff8b0;box-shadow:0 0 12px #fff2a0}
-.magnifier{position:absolute;right:-8px;width:60px;height:60px;border:5px solid #f4fbff;border-radius:50%;z-index:4;pointer-events:none;box-shadow:0 0 14px rgba(0,200,255,.9),inset 0 0 16px rgba(255,255,255,.22);background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.30),rgba(70,180,255,.08) 35%,rgba(0,25,80,.18) 70%);transition:top 1.05s cubic-bezier(.18,.78,.16,1),transform .35s ease;transform:translateY(-50%)}
-.magnifier::before{content:"";position:absolute;left:11px;top:9px;width:17px;height:9px;border-radius:50%;background:rgba(255,255,255,.72);transform:rotate(-35deg);filter:blur(1px)}
-.magnifier::after{content:"";position:absolute;width:30px;height:9px;border-radius:9px;background:linear-gradient(90deg,#f4fbff,#9bdcff);right:-25px;bottom:-13px;transform:rotate(45deg);box-shadow:0 0 10px rgba(0,200,255,.8)}
+.magnifier{position:absolute;right:-2px;width:70px;height:70px;border:4px solid #ffe36b;border-radius:50%;z-index:4;pointer-events:none;box-shadow:0 0 18px rgba(255,216,70,.95),inset 0 0 14px rgba(255,255,255,.28);background:rgba(0,30,80,.38);transition:top 1.5s cubic-bezier(.18,.82,.2,1),transform .45s ease;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;font-size:48px;line-height:1}
+.magnifier::before{content:"🔍";display:block;filter:drop-shadow(0 0 5px rgba(255,255,255,.7))}.magnifier::after{content:"";position:absolute;width:27px;height:8px;border-radius:8px;background:#e9f8ff;right:-22px;bottom:-10px;transform:rotate(45deg);box-shadow:0 0 8px rgba(0,200,255,.8)}
 .magnifier.glow{animation:magGlow .8s ease-in-out infinite alternate}
 @keyframes magGlow{to{box-shadow:0 0 28px rgba(255,216,70,.95),inset 0 0 16px rgba(255,255,255,.35);transform:translateY(-50%) scale(1.06)}}
 .progressOverlay{position:fixed;inset:0;background:radial-gradient(circle,#260070 0,#08001f 82%);display:flex;align-items:center;justify-content:center;z-index:45;text-align:center;padding:14px}
@@ -95,7 +94,6 @@ button{cursor:pointer}
  .app{padding:10px}.game{grid-template-columns:1fr}.sidebar{order:-1}.money{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}.moneyRow{font-size:11px;height:30px}.moneyRow.million{font-size:12px}.main{padding:12px}.answers{gap:8px}.answer{min-height:62px;padding:11px 10px}.life{width:74px;height:52px}.question{min-height:95px}
 }
 @media(max-width:500px){.answers{grid-template-columns:1fr}.header{font-size:13px}.money{grid-template-columns:repeat(3,1fr)}.moneyRow.current{order:-1}.lifelines{gap:7px}.life{width:31%;font-size:12px}}
-/* v4: ladder magnifier + answer music */
 </style>
 </head>
 <body>
@@ -152,7 +150,7 @@ button{cursor:pointer}
 </div>
 <div id="progressOverlay" class="progressOverlay hiddenUI">
  <div class="progressBox">
-  <h2 id="progressTitle">עולים בסולם</h2>
+  <h2 id="progressTitle">🔍 עולים בסולם הזכייה</h2>
   <div id="progressPrize" class="progressPrize">₪500</div>
   <div class="pyramidStage">
    <div id="progressPyramid" class="pyramid"></div>
@@ -170,6 +168,11 @@ button{cursor:pointer}
   <button class="goldBtn" id="closeAudience">חזרה לשאלה</button>
  </div>
 </div>
+<audio id="sfxIntro" preload="auto" src="intro.wav"></audio>
+<audio id="sfxSuspense" preload="auto" src="suspense.wav"></audio>
+<audio id="sfxCorrect" preload="auto" src="correct.wav"></audio>
+<audio id="sfxWrong" preload="auto" src="wrong.wav"></audio>
+<audio id="sfxTick" preload="auto" src="tick.wav"></audio>
 <div id="toast" class="toast hiddenUI"></div>
 
 <script>
@@ -205,30 +208,34 @@ function noiseBurst(when=0,dur=.35,vol=.035){
 }
 function beep(freq=440,dur=.12,type="sine",vol=.035){tone(freq,dur,type,vol);}
 function answerSuspense(){
- // מנגינת מתח מקורית: צלילים קצרים שעולים בהדרגה, ואז עצירה לפני הגילוי.
- [220,247,262,294,330,349,392,440,494,523].forEach((f,i)=>tone(f,.23,"triangle",.026,i*.12));
- [110,123,147].forEach((f,i)=>tone(f,.75,"sine",.016,.05+i*.38));
+  if(playSfx("sfxSuspense")) return;
+  ensureAudio();
+  [147,165,185,208,233,247,277,311,330,370].forEach((f,i)=>{
+    tone(f,.30,"triangle",.018,i*.16);
+    tone(f/2,.30,"sine",.012,i*.16);
+  });
+  [0,.8,1.6].forEach(t=>tone(98,.55,"sine",.014,t));
 }
-function crowdCheer(){
- // אפקט קהל מקורי מסונתז: "רחש" + מחיאות/קריאות קצרות, ללא הקלטת מקור.
- const ctx=ensureAudio(); if(!ctx)return;
- for(let i=0;i<16;i++){ const t=i*.075+Math.random()*.035; noiseBurst(t,.18+Math.random()*.12,.012+Math.random()*.012); }
- [[523,0],[659,.10],[784,.20],[1047,.31],[1319,.44],[1568,.58]].forEach(([f,t])=>tone(f,.42,"triangle",.032,t));
- [0,.16,.32,.48,.64,.80].forEach((t,i)=>tone(196+(i%3)*49,.22,"square",.012,t));
+function crowdCheer(t=0){
+  ensureAudio();
+  [0,.13,.27,.42,.58].forEach((x,i)=>noiseBurst(t+x,.34,.018+i*.004));
+  [[523,0],[659,.10],[784,.20],[1047,.34],[1319,.48]].forEach(([f,x])=>tone(f,.55,"sine",.035,t+x));
+  [0,.18,.36,.54].forEach(x=>tone(1568,.22,"triangle",.018,t+x));
 }
 function correctSound(){
- crowdCheer();
- [0,.22,.44,.66].forEach((t,i)=>tone([523,659,784,1047][i],.52,"sine",.038,t));
+  if(playSfx("sfxCorrect")) return;
+  crowdCheer(0);
+  [[784,0],[988,.16],[1175,.32],[1568,.50]].forEach(([f,t])=>tone(f,.45,"triangle",.028,t));
 }
-function sadTrumpet(){
- // תרועת חצוצרה עצובה מסונתזת: ירידה כרומטית עם הרמוניה חלשה.
- [[466,0,.36],[415,.30,.40],[370,.62,.44],[330,.96,.52],[277,1.34,.72]].forEach(([f,t,d])=>{
-   tone(f,d,"sawtooth",.032,t,-10);
-   tone(f*1.5,d*.75,"triangle",.009,t,7);
- });
- tone(233,1.0,"sawtooth",.022,1.72,-12);
+function trumpetSad(){
+  ensureAudio();
+  [[392,0,.42,-3],[370,.34,.42,-5],[330,.68,.48,-7],[294,1.08,.58,-9],[247,1.56,.78,-12]].forEach(([f,t,d,det])=>{
+    tone(f,d,"sawtooth",.032,t,det);
+    tone(f*1.5,d*.72,"triangle",.010,t,det+3);
+  });
+  noiseBurst(1.58,.34,.010);
 }
-function wrongSound(){sadTrumpet();}
+function wrongSound(){if(playSfx("sfxWrong")) return; trumpetSad();}
 function tension(){tone(330,.09,"sawtooth",.025);setTimeout(()=>tone(440,.09,"sawtooth",.025),120);}
 
 function shuffle(arr){ return [...arr].sort(()=>Math.random()-.5); }
@@ -332,18 +339,18 @@ function revealPyramidRows(containerId,delay=185){
 }
 function showPyramidThenStart(){
  const overlay=$("pyramidOverlay");overlay.classList.remove("hiddenUI");const rows=revealPyramidRows("pyramid");const n=rows.length;
- rows.slice().reverse().forEach((row,i)=>setTimeout(()=>{rows.forEach(r=>r.classList.remove("active"));const idx=rows.length-1-i;rows[idx].classList.add("active");setMagnifier("pyramid",idx);$("pyramidHint").textContent=money(PRIZES[i]);tone(360+i*24,.08,"sine",.022);},n*185+420+i*110));
- setTimeout(()=>{$("pyramidOverlay").classList.add("hiddenUI");prepareQuestion()},n*185+420+n*110+650);
+ rows.slice().reverse().forEach((row,i)=>setTimeout(()=>{rows.forEach(r=>r.classList.remove("active"));const idx=rows.length-1-i;rows[idx].classList.add("active");setMagnifier("pyramid",idx);$("pyramidHint").textContent=money(PRIZES[i]);tone(360+i*24,.08,"sine",.022);},n*185+420+i*170));
+ setTimeout(()=>{$("pyramidOverlay").classList.add("hiddenUI");prepareQuestion()},n*185+420+n*170+900);
 }
 function showProgressAnimation(targetIndex){
  const overlay=$("progressOverlay"),rows=[...$("progressPyramid").querySelectorAll(".pRow")];rows.forEach(r=>{r.classList.add("show");r.classList.remove("active")});overlay.classList.remove("hiddenUI");
  const sequence=[];for(let i=Math.max(0,targetIndex-2);i<=targetIndex;i++)sequence.push(i);
- sequence.forEach((idx,n)=>setTimeout(()=>{rows.forEach(r=>r.classList.remove("active"));const rowIndex=rows.length-1-idx;rows[rowIndex].classList.add("active");setMagnifier("progressPyramid",rowIndex);$("progressPrize").textContent=money(PRIZES[idx]);$("progressStage").textContent=idx===4?"סיימת את השלב הראשון":idx===9?"סיימת את השלב השני":`שאלה ${idx+1} מתוך 15`;tone(400+n*60,.09,"sine",.025);},n*650));
- const total=sequence.length*650+1050;setTimeout(()=>overlay.classList.add("hiddenUI"),total);return total;
+ sequence.forEach((idx,n)=>setTimeout(()=>{rows.forEach(r=>r.classList.remove("active"));const rowIndex=rows.length-1-idx;rows[rowIndex].classList.add("active");setMagnifier("progressPyramid",rowIndex);$("progressPrize").textContent=money(PRIZES[idx]);$("progressStage").textContent=idx===4?"סיימת את השלב הראשון":idx===9?"סיימת את השלב השני":`שאלה ${idx+1} מתוך 15`;tone(400+n*60,.09,"sine",.025);},n*850));
+ const total=sequence.length*850+1300;setTimeout(()=>overlay.classList.add("hiddenUI"),total);return total;
 }
 function answer(i){
  if(game.locked)return;game.locked=true;stopTimers();const btns=[...document.querySelectorAll(".answer")],chosen=game.current.opts[i];btns[i].classList.add("selected","soundFlash");answerSuspense();
- setTimeout(()=>{const correctIndex=game.current.opts.findIndex(o=>o.correct);btns[correctIndex].classList.add("correct","answerReveal");if(!chosen.correct)btns[i].classList.add("wrong");if(chosen.correct){correctSound();setTimeout(()=>nextQuestion(),2800);}else{wrongSound();setTimeout(()=>finish(false,"התשובה אינה נכונה"),2800);}},2100);
+ setTimeout(()=>{const correctIndex=game.current.opts.findIndex(o=>o.correct);btns[correctIndex].classList.add("correct","answerReveal");if(!chosen.correct)btns[i].classList.add("wrong");if(chosen.correct){correctSound();setTimeout(()=>nextQuestion(),3000);}else{wrongSound();setTimeout(()=>finish(false,"התשובה אינה נכונה"),3000);}},1850);
 }
 function nextQuestion(){
  game.index++;if(game.index>=15){win();return;}const anim=showProgressAnimation(game.index);
@@ -379,7 +386,17 @@ function useSwap(){
  $("overlayBox").innerHTML=`<div class="nextPrize">🔄</div><p>מחליפים שאלה...</p>`; $("overlay").classList.remove("hiddenUI");
  setTimeout(()=>{$("overlay").classList.add("hiddenUI");game.locked=false;prepareQuestion()},2200);
 }
-function startMelody(){ensureAudio();[392,494,587,784,988,784,1175].forEach((f,i)=>tone(f,.28,"sine",.038,i*.16));[196,247,294].forEach((f,i)=>tone(f,.55,"triangle",.018,.02+i*.32));}
+function playSfx(id){
+  const a=$(id); if(!a) return false;
+  try{a.currentTime=0; const p=a.play(); if(p&&p.catch)p.catch(()=>{}); return true;}catch(e){return false;}
+}
+function startMelody(){
+  if(!playSfx("sfxIntro")){
+    ensureAudio();
+    [392,494,587,784,988,784,1175].forEach((f,i)=>tone(f,.28,"sine",.038,i*.16));
+    [196,247,294].forEach((f,i)=>tone(f,.55,"triangle",.018,.02+i*.32));
+  }
+}
 $("startBtn").onclick=()=>{show("nameScreen");setTimeout(()=>$("nameInput").focus(),100)};
 $("nameBtn").onclick=()=>{
  const n=$("nameInput").value.trim();
