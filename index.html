@@ -60,6 +60,26 @@ button{cursor:pointer}
 .transitionBox h1,.resultBox h1{color:#ffd34e;font-size:clamp(38px,8vw,72px);margin:0 0 10px}
 .transitionBox p,.resultBox p{font-size:22px}
 .hiddenUI{display:none!important}.pyramidOverlay{position:fixed;inset:0;background:radial-gradient(circle,#260070 0,#08001f 82%);display:flex;align-items:center;justify-content:center;z-index:40;text-align:center;padding:14px}.pyramidBox{width:min(560px,96vw);padding:20px 16px 24px;border:2px solid #00b8ff;border-radius:28px;background:linear-gradient(145deg,#071c4d,#10032f);box-shadow:0 0 60px rgba(0,180,255,.28)}.pyramidBox h1{margin:0 0 12px;color:#ffd34e;font-size:clamp(30px,7vw,52px)}.pyramid{display:flex;flex-direction:column;gap:5px}.pRow{height:31px;border:1px solid #2877bb;border-radius:15px;background:linear-gradient(180deg,#153c77,#091b43);display:flex;align-items:center;justify-content:center;font-weight:800;opacity:.18;transform:scale(.92);transition:opacity .35s,transform .35s,background .35s,box-shadow .35s}.pRow.show{opacity:1;transform:scale(1)}.pRow.active{background:linear-gradient(180deg,#ffd84f,#e69b12);color:#1a0d00;border-color:#fff1a3;box-shadow:0 0 20px rgba(255,205,50,.55)}.pyramidHint{margin:12px 0 0;color:#b9d9ff;font-size:15px}.lifepulse{animation:lifePulse .45s ease-in-out 3}@keyframes lifePulse{50%{transform:scale(1.12);box-shadow:0 0 28px rgba(0,190,255,.8)}}.answerReveal{animation:reveal .55s ease}@keyframes reveal{0%{filter:brightness(2)}100%{filter:brightness(1)}}.nextPrize{font-size:36px;color:#ffd34e;font-weight:900;margin:12px 0}
+
+/* Ladder / magnifying-glass progression */
+.pyramidBox{position:relative;overflow:hidden}
+.pyramidStage{position:relative;width:min(470px,92vw);margin:0 auto}
+.pyramid{position:relative;z-index:1}
+.pRow{position:relative;height:31px;transition:opacity .35s,transform .35s,background .35s,box-shadow .35s}
+.pRow::before{content:"";position:absolute;right:10px;top:50%;width:7px;height:7px;border-radius:50%;background:#5bbfff;transform:translateY(-50%);opacity:.75}
+.pRow.active::before{background:#fff8b0;box-shadow:0 0 12px #fff2a0}
+.magnifier{position:absolute;right:-8px;width:60px;height:60px;border:5px solid #f4fbff;border-radius:50%;z-index:4;pointer-events:none;box-shadow:0 0 14px rgba(0,200,255,.9),inset 0 0 16px rgba(255,255,255,.22);background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.30),rgba(70,180,255,.08) 35%,rgba(0,25,80,.18) 70%);transition:top 1.05s cubic-bezier(.18,.78,.16,1),transform .35s ease;transform:translateY(-50%)}
+.magnifier::before{content:"";position:absolute;left:11px;top:9px;width:17px;height:9px;border-radius:50%;background:rgba(255,255,255,.72);transform:rotate(-35deg);filter:blur(1px)}
+.magnifier::after{content:"";position:absolute;width:30px;height:9px;border-radius:9px;background:linear-gradient(90deg,#f4fbff,#9bdcff);right:-25px;bottom:-13px;transform:rotate(45deg);box-shadow:0 0 10px rgba(0,200,255,.8)}
+.magnifier.glow{animation:magGlow .8s ease-in-out infinite alternate}
+@keyframes magGlow{to{box-shadow:0 0 28px rgba(255,216,70,.95),inset 0 0 16px rgba(255,255,255,.35);transform:translateY(-50%) scale(1.06)}}
+.progressOverlay{position:fixed;inset:0;background:radial-gradient(circle,#260070 0,#08001f 82%);display:flex;align-items:center;justify-content:center;z-index:45;text-align:center;padding:14px}
+.progressBox{width:min(560px,96vw);padding:18px 16px 22px;border:2px solid #00b8ff;border-radius:28px;background:linear-gradient(145deg,#071c4d,#10032f);box-shadow:0 0 60px rgba(0,180,255,.28);animation:pop .45s ease}
+.progressBox h2{margin:0 0 8px;color:#fff;font-size:clamp(20px,5vw,30px)}
+.progressPrize{color:#ffd34e;font-size:clamp(34px,8vw,52px);font-weight:900;margin:7px 0 12px;text-shadow:0 0 18px rgba(255,210,60,.45)}
+.progressStage{color:#b9d9ff;font-size:16px}
+.soundFlash{animation:soundFlash .55s ease}
+@keyframes soundFlash{50%{filter:brightness(1.55)}}
 .fire{font-size:60px;animation:pulse .8s infinite alternate}
 @keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes pulse{to{transform:scale(1.12)}}
@@ -75,6 +95,7 @@ button{cursor:pointer}
  .app{padding:10px}.game{grid-template-columns:1fr}.sidebar{order:-1}.money{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}.moneyRow{font-size:11px;height:30px}.moneyRow.million{font-size:12px}.main{padding:12px}.answers{gap:8px}.answer{min-height:62px;padding:11px 10px}.life{width:74px;height:52px}.question{min-height:95px}
 }
 @media(max-width:500px){.answers{grid-template-columns:1fr}.header{font-size:13px}.money{grid-template-columns:repeat(3,1fr)}.moneyRow.current{order:-1}.lifelines{gap:7px}.life{width:31%;font-size:12px}}
+/* v4: ladder magnifier + answer music */
 </style>
 </head>
 <body>
@@ -122,8 +143,22 @@ button{cursor:pointer}
 <div id="pyramidOverlay" class="pyramidOverlay hiddenUI">
  <div class="pyramidBox">
   <h1>סכום הזכייה</h1>
-  <div id="pyramid" class="pyramid"></div>
+  <div class="pyramidStage">
+   <div id="pyramid" class="pyramid"></div>
+   <div id="magnifier" class="magnifier" aria-hidden="true"></div>
+  </div>
   <div id="pyramidHint" class="pyramidHint">המשחק עומד להתחיל...</div>
+ </div>
+</div>
+<div id="progressOverlay" class="progressOverlay hiddenUI">
+ <div class="progressBox">
+  <h2 id="progressTitle">עולים בסולם</h2>
+  <div id="progressPrize" class="progressPrize">₪500</div>
+  <div class="pyramidStage">
+   <div id="progressPyramid" class="pyramid"></div>
+   <div id="progressMagnifier" class="magnifier" aria-hidden="true"></div>
+  </div>
+  <div id="progressStage" class="progressStage"></div>
  </div>
 </div>
 <div id="overlay" class="transition hiddenUI"><div id="overlayBox" class="transitionBox"></div></div>
@@ -155,17 +190,47 @@ function money(n){ return "₪" + n.toLocaleString("he-IL"); }
 function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); $(id).classList.add("active"); }
 function toast(msg){ $("toast").textContent=msg; $("toast").classList.remove("hiddenUI"); setTimeout(()=> $("toast").classList.add("hiddenUI"),1800); }
 
-function beep(freq=440,dur=.12,type="sine",vol=.035){
- try{
-  audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();
-  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-  o.type=type;o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(audioCtx.destination);
-  o.start();g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);o.stop(audioCtx.currentTime+dur);
- }catch(e){}
+function ensureAudio(){
+ try{audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();return audioCtx;}catch(e){return null;}
 }
-function tension(){
- beep(330,.09,"sawtooth",.025); setTimeout(()=>beep(440,.09,"sawtooth",.025),120);
+function tone(freq,dur=.12,type="sine",vol=.035,when=0,detune=0){
+ const ctx=ensureAudio();if(!ctx)return;const t=ctx.currentTime+when;
+ const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);o.detune.setValueAtTime(detune,t);o.connect(g);g.connect(ctx.destination);
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,vol),t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.start(t);o.stop(t+dur+.03);
 }
+function noiseBurst(when=0,dur=.35,vol=.035){
+ const ctx=ensureAudio();if(!ctx)return;const t=ctx.currentTime+when;
+ const buffer=ctx.createBuffer(1,Math.floor(ctx.sampleRate*dur),ctx.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,.55);
+ const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),g=ctx.createGain();filter.type="bandpass";filter.frequency.value=1500;filter.Q.value=.7;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.025);g.gain.exponentialRampToValueAtTime(.0001,t+dur);src.buffer=buffer;src.connect(filter);filter.connect(g);g.connect(ctx.destination);src.start(t);src.stop(t+dur+.02);
+}
+function beep(freq=440,dur=.12,type="sine",vol=.035){tone(freq,dur,type,vol);}
+function answerSuspense(){
+ // מנגינת מתח מקורית: צלילים קצרים שעולים בהדרגה, ואז עצירה לפני הגילוי.
+ [220,247,262,294,330,349,392,440,494,523].forEach((f,i)=>tone(f,.23,"triangle",.026,i*.12));
+ [110,123,147].forEach((f,i)=>tone(f,.75,"sine",.016,.05+i*.38));
+}
+function crowdCheer(){
+ // אפקט קהל מקורי מסונתז: "רחש" + מחיאות/קריאות קצרות, ללא הקלטת מקור.
+ const ctx=ensureAudio(); if(!ctx)return;
+ for(let i=0;i<16;i++){ const t=i*.075+Math.random()*.035; noiseBurst(t,.18+Math.random()*.12,.012+Math.random()*.012); }
+ [[523,0],[659,.10],[784,.20],[1047,.31],[1319,.44],[1568,.58]].forEach(([f,t])=>tone(f,.42,"triangle",.032,t));
+ [0,.16,.32,.48,.64,.80].forEach((t,i)=>tone(196+(i%3)*49,.22,"square",.012,t));
+}
+function correctSound(){
+ crowdCheer();
+ [0,.22,.44,.66].forEach((t,i)=>tone([523,659,784,1047][i],.52,"sine",.038,t));
+}
+function sadTrumpet(){
+ // תרועת חצוצרה עצובה מסונתזת: ירידה כרומטית עם הרמוניה חלשה.
+ [[466,0,.36],[415,.30,.40],[370,.62,.44],[330,.96,.52],[277,1.34,.72]].forEach(([f,t,d])=>{
+   tone(f,d,"sawtooth",.032,t,-10);
+   tone(f*1.5,d*.75,"triangle",.009,t,7);
+ });
+ tone(233,1.0,"sawtooth",.022,1.72,-12);
+}
+function wrongSound(){sadTrumpet();}
+function tension(){tone(330,.09,"sawtooth",.025);setTimeout(()=>tone(440,.09,"sawtooth",.025),120);}
+
 function shuffle(arr){ return [...arr].sort(()=>Math.random()-.5); }
 
 function loadLocalLeaders(){
@@ -253,49 +318,41 @@ function updateTimer(){
 }
 function stopTimers(){clearInterval(game.timer);clearInterval(game.tickTimer);}
 
+function setMagnifier(containerId,rowIndex){
+ const pyramid=$(containerId), stage=pyramid.parentElement, mag=$(containerId==="pyramid"?"magnifier":"progressMagnifier");
+ const rows=[...pyramid.querySelectorAll(".pRow")];if(!rows.length)return;const row=rows[rowIndex];mag.style.top=(row.offsetTop+row.offsetHeight/2)+"px";mag.classList.add("glow");
+}
+function buildPyramid(){
+ const html=PRIZES.map((p,i)=>`<div class="pRow" data-i="${i}">${money(p)}</div>`).reverse().join("");
+ $("pyramid").innerHTML=html;$("progressPyramid").innerHTML=html;
+}
+function revealPyramidRows(containerId,delay=185){
+ const rows=[...$(containerId).querySelectorAll(".pRow")];rows.forEach(r=>{r.classList.remove("show","active")});
+ rows.slice().reverse().forEach((row,i)=>setTimeout(()=>row.classList.add("show"),i*delay));return rows;
+}
+function showPyramidThenStart(){
+ const overlay=$("pyramidOverlay");overlay.classList.remove("hiddenUI");const rows=revealPyramidRows("pyramid");const n=rows.length;
+ rows.slice().reverse().forEach((row,i)=>setTimeout(()=>{rows.forEach(r=>r.classList.remove("active"));const idx=rows.length-1-i;rows[idx].classList.add("active");setMagnifier("pyramid",idx);$("pyramidHint").textContent=money(PRIZES[i]);tone(360+i*24,.08,"sine",.022);},n*185+420+i*110));
+ setTimeout(()=>{$("pyramidOverlay").classList.add("hiddenUI");prepareQuestion()},n*185+420+n*110+650);
+}
+function showProgressAnimation(targetIndex){
+ const overlay=$("progressOverlay"),rows=[...$("progressPyramid").querySelectorAll(".pRow")];rows.forEach(r=>{r.classList.add("show");r.classList.remove("active")});overlay.classList.remove("hiddenUI");
+ const sequence=[];for(let i=Math.max(0,targetIndex-2);i<=targetIndex;i++)sequence.push(i);
+ sequence.forEach((idx,n)=>setTimeout(()=>{rows.forEach(r=>r.classList.remove("active"));const rowIndex=rows.length-1-idx;rows[rowIndex].classList.add("active");setMagnifier("progressPyramid",rowIndex);$("progressPrize").textContent=money(PRIZES[idx]);$("progressStage").textContent=idx===4?"סיימת את השלב הראשון":idx===9?"סיימת את השלב השני":`שאלה ${idx+1} מתוך 15`;tone(400+n*60,.09,"sine",.025);},n*650));
+ const total=sequence.length*650+1050;setTimeout(()=>overlay.classList.add("hiddenUI"),total);return total;
+}
 function answer(i){
- if(game.locked)return;
- game.locked=true; stopTimers();
- const btns=[...document.querySelectorAll(".answer")];
- const chosen=game.current.opts[i]; btns[i].classList.add("selected");
- setTimeout(()=>{
-  const correctIndex=game.current.opts.findIndex(o=>o.correct);
-  btns[correctIndex].classList.add("correct","answerReveal");
-  if(!chosen.correct) btns[i].classList.add("wrong");
-  chosen.correct ? beep(700,.2,"sine",.05) : beep(120,.3,"sawtooth",.05);
-  setTimeout(()=>chosen.correct ? nextQuestion() : finish(false,"התשובה אינה נכונה"),1700);
- },1200);
+ if(game.locked)return;game.locked=true;stopTimers();const btns=[...document.querySelectorAll(".answer")],chosen=game.current.opts[i];btns[i].classList.add("selected","soundFlash");answerSuspense();
+ setTimeout(()=>{const correctIndex=game.current.opts.findIndex(o=>o.correct);btns[correctIndex].classList.add("correct","answerReveal");if(!chosen.correct)btns[i].classList.add("wrong");if(chosen.correct){correctSound();setTimeout(()=>nextQuestion(),2800);}else{wrongSound();setTimeout(()=>finish(false,"התשובה אינה נכונה"),2800);}},2100);
 }
 function nextQuestion(){
- game.index++;
- if(game.index===5){showStage(2,"שלב 1 הושלם!","עוברים לשלב הבינוני");return;}
- if(game.index===10){showStage(2,"שלב 2 הושלם!","עכשיו מגיע השלב הקשה");return;}
- if(game.index>=15){win();return;}
- showNextPrize();
+ game.index++;if(game.index>=15){win();return;}const anim=showProgressAnimation(game.index);
+ setTimeout(()=>{if(game.index===5){showStage(2,"שלב 1 הושלם!","עוברים לשלב הבינוני");return;}if(game.index===10){showStage(2,"שלב 2 הושלם!","עכשיו מגיע השלב הקשה");return;}prepareQuestion();},anim+250);
 }
-function showNextPrize(){
- $("overlayBox").innerHTML=`<div class="nextPrize">${money(PRIZES[game.index])}</div><p>עולים לשאלה הבאה...</p>`;
- $("overlay").classList.remove("hiddenUI");
- setTimeout(()=>{$("overlay").classList.add("hiddenUI");prepareQuestion()},1500);
-}
-function showStage(ms,title,text){
- $("overlayBox").innerHTML=`<div class="fire">${ms===2?"✨":"🔥"}</div><h1>${title}</h1><p>${text}</p>`;
- $("overlay").classList.remove("hiddenUI"); beep(660,.16); setTimeout(()=>beep(880,.18),180);
- setTimeout(()=>{$("overlay").classList.add("hiddenUI");prepareQuestion()},3200);
-}
-function finish(winFlag,reason){
- stopTimers(); game.locked=true;
- $("overlayBox").innerHTML=`<h1>${winFlag?"🎉 מיליון!":"❌ המשחק הסתיים"}</h1><p>${winFlag?"כל הכבוד! הגעת ל־₪1,000,000":escapeHtml(reason)}</p><p>${winFlag?"השם שלך נכנס לטבלת אלופי המיליונר.":"הגעת עד " + money(game.index?PRIZES[Math.max(0,game.index-1)]:0)}</p><button class="goldBtn" id="backHome">חזרה למסך הראשי</button>`;
- $("overlay").classList.remove("hiddenUI");
- $("backHome").onclick=()=>{ $("overlay").classList.add("hiddenUI"); show("startScreen"); renderLeaders(); };
-}
-async function win(){
- stopTimers(); game.locked=true; beep(523,.18);setTimeout(()=>beep(659,.18),180);setTimeout(()=>beep(784,.35),360);
- await recordWin(game.name);
- $("overlayBox").innerHTML=`<div class="fire">🏆</div><h1>מזל טוב!</h1><p>הגעת למיליון!</p><p style="color:#ffd34e;font-size:32px;font-weight:900">₪1,000,000</p><button class="goldBtn" id="backHome">חזרה למסך הראשי</button>`;
- $("overlay").classList.remove("hiddenUI");
- $("backHome").onclick=()=>{ $("overlay").classList.add("hiddenUI"); show("startScreen"); renderLeaders(); };
-}
+function showNextPrize(){const anim=showProgressAnimation(game.index);setTimeout(()=>prepareQuestion(),anim+250);}
+function showStage(ms,title,text){$("overlayBox").innerHTML=`<div class="fire">${ms===2?"✨":"🔥"}</div><h1>${title}</h1><p>${text}</p>`;$("overlay").classList.remove("hiddenUI");tone(660,.16,"triangle",.04);setTimeout(()=>tone(880,.18,"triangle",.045),180);setTimeout(()=>{$("overlay").classList.add("hiddenUI");prepareQuestion()},3200);}
+function finish(winFlag,reason){stopTimers();game.locked=true;$("overlayBox").innerHTML=`<h1>${winFlag?"🎉 מיליון!":"❌ המשחק הסתיים"}</h1><p>${winFlag?"כל הכבוד! הגעת ל־₪1,000,000":escapeHtml(reason)}</p><p>${winFlag?"השם שלך נכנס לטבלת אלופי המיליונר.":"הגעת עד " + money(game.index?PRIZES[Math.max(0,game.index-1)]:0)}</p><button class="goldBtn" id="backHome">חזרה למסך הראשי</button>`;$("overlay").classList.remove("hiddenUI");if(!winFlag)wrongSound();$("backHome").onclick=()=>{$("overlay").classList.add("hiddenUI");show("startScreen");renderLeaders();};}
+async function win(){stopTimers();game.locked=true;correctSound();await recordWin(game.name);$("overlayBox").innerHTML=`<div class="fire">🏆</div><h1>מזל טוב!</h1><p>הגעת למיליון!</p><p style="color:#ffd34e;font-size:32px;font-weight:900">₪1,000,000</p><button class="goldBtn" id="backHome">חזרה למסך הראשי</button>`;$("overlay").classList.remove("hiddenUI");$("backHome").onclick=()=>{$("overlay").classList.add("hiddenUI");show("startScreen");renderLeaders();};}
 
 function pulseLife(id){$(id).classList.add("lifepulse");setTimeout(()=>$(id).classList.remove("lifepulse"),1400);}
 function useFifty(){
@@ -322,21 +379,7 @@ function useSwap(){
  $("overlayBox").innerHTML=`<div class="nextPrize">🔄</div><p>מחליפים שאלה...</p>`; $("overlay").classList.remove("hiddenUI");
  setTimeout(()=>{$("overlay").classList.add("hiddenUI");game.locked=false;prepareQuestion()},2200);
 }
-function startMelody(){
- try{audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();}
- catch(e){}
- [523,659,784,1047,784,659,880].forEach((f,i)=>setTimeout(()=>beep(f,.22,"sine",.045),i*150));
-}
-function buildPyramid(){
- $("pyramid").innerHTML=PRIZES.map((p,i)=>`<div class="pRow" data-i="${i}">${money(p)}</div>`).reverse().join("");
-}
-function showPyramidThenStart(){
- const rows=[...$("pyramid").querySelectorAll(".pRow")].reverse(); $("pyramidOverlay").classList.remove("hiddenUI");
- rows.forEach((row,i)=>setTimeout(()=>{row.classList.add("show");beep(420+i*22,.08,"sine",.025)},i*260));
- setTimeout(()=>{rows[0].classList.add("active");$("pyramidHint").textContent="מתחילים מ־₪500"},rows.length*260+350);
- setTimeout(()=>{$("pyramidOverlay").classList.add("hiddenUI");prepareQuestion()},rows.length*260+1600);
-}
-
+function startMelody(){ensureAudio();[392,494,587,784,988,784,1175].forEach((f,i)=>tone(f,.28,"sine",.038,i*.16));[196,247,294].forEach((f,i)=>tone(f,.55,"triangle",.018,.02+i*.32));}
 $("startBtn").onclick=()=>{show("nameScreen");setTimeout(()=>$("nameInput").focus(),100)};
 $("nameBtn").onclick=()=>{
  const n=$("nameInput").value.trim();
