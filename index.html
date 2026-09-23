@@ -119,6 +119,13 @@ button{cursor:pointer}
 </section>
 </div>
 
+<div id="pyramidOverlay" class="pyramidOverlay hiddenUI">
+ <div class="pyramidBox">
+  <h1>סכום הזכייה</h1>
+  <div id="pyramid" class="pyramid"></div>
+  <div id="pyramidHint" class="pyramidHint">המשחק עומד להתחיל...</div>
+ </div>
+</div>
 <div id="overlay" class="transition hiddenUI"><div id="overlayBox" class="transitionBox"></div></div>
 <div id="audienceOverlay" class="transition hiddenUI">
  <div class="transitionBox audience">
@@ -334,7 +341,7 @@ $("startBtn").onclick=()=>{show("nameScreen");setTimeout(()=>$("nameInput").focu
 $("nameBtn").onclick=()=>{
  const n=$("nameInput").value.trim();
  if(n.length<2){toast("נא להכניס שם");return}
- game={name:n,index:0,current:null,used:{fifty:false,audience:false,swap:false},timer:null,startedAt:0,locked:false,questionPool:[],usedIds:new Set()};
+ game={name:n,index:0,current:null,used:{fifty:false,audience:false,swap:false},timer:null,tickTimer:null,startedAt:0,locked:false,questionPool:[],usedIds:new Set()};
  buildPool(); show("gameScreen"); startMelody(); showPyramidThenStart();
 };
 $("nameInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("nameBtn").click()});
